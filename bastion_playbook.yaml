@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+
+  tasks:
+    - name: Install packages
+      yum: name={{item}} state=present
+      with_items:
+         - vim
+
+    - name: Create a log folder
+      file:
+        path: /var/log/bastion
+        owner: ec2-user
+        group: ec2-user
+        mode: '1770'
+
+    - name: Create the bastion binary folder
+      file:
+        path: /usr/bin/bastion
+        state: directory
+        mode: '0775'
+
+    - name: Create the bastion binary 
+      template:
+        src: bastion_shell.j2
+        dest: /usr/bin/bastion/shell
+        mode: '0755'
+
+    - name: Set Permissions of /usr/bin/script
+      file: 
+        path: /usr/bin/script
+        mode: '2744'
+        owner: root
+        group: ec2-user
+        
+    - name: Set shell in SSHD Config
+      shell: mount -o remount,rw,hidepid=2 /proc && awk '!/proc/' /etc/fstab > temp && mv temp /etc/fstab && echo "proc /proc proc defaults,hidepid=2 0 0" >> /etc/fstab
+
+    - name: Set shell in SSHD Config
+      shell: echo -e "\nForceCommand /usr/bin/bastion/shell" >> /etc/ssh/sshd_config
+
+    - name: Allow TCP Forwarding
+      shell: awk '!/AllowTcpForwarding/' /etc/ssh/sshd_config > temp && mv temp /etc/ssh/sshd_config
+
+    - name: Set X11Forwarding Config
+      shell: awk '!/X11Forwarding/' /etc/ssh/sshd_config > temp && mv temp /etc/ssh/sshd_config
+
+    - name: Set TCPForwarding  Config
+      shell: echo "AllowTcpForwarding no" >> /etc/ssh/sshd_config
+
+    - name: Set X11Forwarding Config
+      shell: echo "X11Forwarding no" >> /etc/ssh/sshd_config
+
+    - name: REstart SSHD
+      service: 
+        name: sshd
+        state: restarted
