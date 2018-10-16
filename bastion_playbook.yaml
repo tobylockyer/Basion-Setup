@@ -34,7 +34,7 @@
         owner: root
         group: ec2-user
         
-    - name: Set shell in SSHD Config
+    - name: Set mount options so Pids are hidden
       shell: mount -o remount,rw,hidepid=2 /proc && awk '!/proc/' /etc/fstab > temp && mv temp /etc/fstab && echo "proc /proc proc defaults,hidepid=2 0 0" >> /etc/fstab
 
     - name: Set shell in SSHD Config
