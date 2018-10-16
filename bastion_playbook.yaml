@@ -29,7 +29,7 @@
     - name: Set Permissions of /usr/bin/script
       file: 
         path: /usr/bin/script
-        mode: '2744'
+        mode: '2755'
         owner: root
         group: ec2-user
         
